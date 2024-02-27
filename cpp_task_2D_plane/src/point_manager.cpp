@@ -16,11 +16,6 @@ PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
     point_vector_.emplace_back(std::rand() % 101 - 50,
                                 std::rand() % 101 - 50);
   }
-
-  for (auto& elm : point_vector_) {
-    std::cout << "point: " << elm.getCurrentPose().first << ", " << elm.getCurrentPose().second << "\n";
-  }
-  std::cout << "t_port: " << telemetry_port_ << ", s_port: " << server_port_ << "\n"; 
 }
 
 void PointManager::publishTelemetry() {
@@ -28,7 +23,8 @@ void PointManager::publishTelemetry() {
   int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
   if (udp_socket == -1) {
-    // TODO: implement error handling for socket call
+    perror("socket() for the telemetry failed");
+    exit(1);
   }
 
   // Set up the server address structure
@@ -50,8 +46,8 @@ void PointManager::startServer() {
   int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
   if (udp_socket == -1) {
-    // TODO: implement error handling for socket call
-    // https://beej.us/guide/bgnet/html/#errnoman
+    perror("socket() for the user interaction server failed");
+    exit(1);
   }
 
   // Set up the server address structure
@@ -63,7 +59,8 @@ void PointManager::startServer() {
   // Bind the socket to the server address
   if (bind(udp_socket, (struct sockaddr *)&server_address,
            sizeof(server_address)) == -1) {
-    // TODO: implement error handling
+    perror("bind() to the port for user interaction failed");
+    exit(1);
   }
 
   // Buffer to receive messages
