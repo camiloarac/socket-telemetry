@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-#include <thread>
+
 
 #define BUFFER_SIZE 2048
 
@@ -28,36 +28,35 @@ PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
 }
 
 void PointManager::publishTelemetry() {
-  // int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+  int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-  // if (udp_socket == -1) {
-  //   perror("socket() for the telemetry failed");
-  //   exit(1);
-  // }
+  if (udp_socket == -1) {
+    perror("socket() for the telemetry failed");
+    exit(1);
+  }
 
-  // // Set up the server address structure
-  // sockaddr_in server_address;
-  // server_address.sin_family = AF_INET;
-  // server_address.sin_port = htons(telemetry_port_);
-  // server_address.sin_addr.s_addr = INADDR_ANY;
+  // Set up the server address structure
+  sockaddr_in server_address;
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(telemetry_port_);
+  server_address.sin_addr.s_addr = INADDR_ANY;
 
-  // // Infinite loop to send messages
-  // while (true) {
-  //   // TODO: implement publishing poses of all points
-  //   // implement mechanism to stop publishing and close socket
-  // }
-
-  // close(udp_socket);
-  for (size_t i = 0; i < 35; i++) {
-    size_t c{1};
+  // Infinite loop to send messages
+  while (true) {
     for (auto& elm : point_vector_) {
       elm.updatePose();
-      auto [x, y] = elm.getCurrentPose();
-      std::cout << "Point " << c << "- x: " << x << ", y: " << y << "\n";
-      c++;
+      auto pose = elm.getCurrentPose();
+      if (sendto(udp_socket, &pose, sizeof pose, 0,
+          (struct sockaddr*)&server_address, sizeof server_address) == -1) {
+        perror("sendto() for the telemetry failed");
+        exit(1);
+      }
     }
-    std::this_thread::sleep_for(200ms);
+    if (program_end_)
+        break;
   }
+  close(udp_socket);
+  std::cout << "The telemetry socket was closed...\n";
 }
 
 void PointManager::startServer() {
@@ -91,3 +90,8 @@ void PointManager::startServer() {
   }
   close(udp_socket);
 }
+
+void PointManager::setProgramEnd() {
+  program_end_ = true;
+}
+
