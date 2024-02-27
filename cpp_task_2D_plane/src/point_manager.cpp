@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <iostream>
 
 #define BUFFER_SIZE 2048
 
@@ -15,6 +16,11 @@ PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
     point_vector_.emplace_back(std::rand() % 101 - 50,
                                 std::rand() % 101 - 50);
   }
+
+  for (auto& elm : point_vector_) {
+    std::cout << "point: " << elm.getCurrentPose().first << ", " << elm.getCurrentPose().second << "\n";
+  }
+  std::cout << "t_port: " << telemetry_port_ << ", s_port: " << server_port_ << "\n"; 
 }
 
 void PointManager::publishTelemetry() {

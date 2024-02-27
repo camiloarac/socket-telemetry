@@ -14,6 +14,12 @@ int main(int argc, char *argv[]) {
   unsigned int telemetry_port;
   unsigned int server_port;
 
+  std::cout << argc << " arguments\n";
+  if (argc < 4) {
+    std::cout << "usage: server -n number_points -t telemetry_port -s server_port\n";
+    return(1);
+  }
+
   static struct option long_options[] = {
       {"number_points", required_argument, nullptr, 'n'},
       {"telemetry_port", required_argument, nullptr, 't'},
