@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   PointManager manager(number_points, telemetry_port, server_port);
 
   std::thread t_telemetry(&PointManager::publishTelemetry, &manager);
-  // std::thread t_server(&PointManager::startServer, &manager);
+  std::thread t_server(&PointManager::startServer, &manager);
   char input;
   do {
     std::cout << "Enter 'y' to close the application...\n";
@@ -56,5 +56,5 @@ int main(int argc, char *argv[]) {
   } while (input != 'y');
   manager.setProgramEnd();
   t_telemetry.join();
-  // t_server.join();
+  t_server.join();
 }

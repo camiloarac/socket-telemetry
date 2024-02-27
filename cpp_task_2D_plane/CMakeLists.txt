@@ -8,6 +8,7 @@ add_library(point_lib src/point.cpp)
 
 # Add executable
 add_executable(server src/main.cpp)
+add_executable(init aux/point_init.cpp)
 target_link_libraries(server PRIVATE Threads::Threads pointmanager_lib point_lib)
 # Set any additional compilation options if needed
 target_compile_options(server PRIVATE -Wall -Wextra)

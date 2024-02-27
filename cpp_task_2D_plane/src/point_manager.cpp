@@ -94,12 +94,13 @@ void PointManager::startServer() {
       exit(1);
     }
     if (numbytes == 12) {
-      index = ((uint8_t)buffer[0] << 24) | ((uint8_t)buffer[1] << 16) | 
-              ((uint8_t)buffer[2] << 8)  | ((uint8_t)buffer[3]);
-      x = ((uint8_t)buffer[4] << 24) | ((uint8_t)buffer[5] << 16) | 
-          ((uint8_t)buffer[6] << 8)  | ((uint8_t)buffer[7]);
-      y = ((uint8_t)buffer[8] << 24) | ((uint8_t)buffer[9] << 16) | 
-          ((uint8_t)buffer[10] << 8) | ((uint8_t)buffer[11]);
+      index = ((uint8_t)buffer[3] << 24) | ((uint8_t)buffer[2] << 16) | 
+              ((uint8_t)buffer[1] << 8)  | ((uint8_t)buffer[0]);
+      x = ((uint8_t)buffer[7] << 24) | ((uint8_t)buffer[6] << 16) | 
+          ((uint8_t)buffer[5] << 8)  | ((uint8_t)buffer[4]);
+      y = ((uint8_t)buffer[11] << 24) | ((uint8_t)buffer[10] << 16) | 
+          ((uint8_t)buffer[9] << 8) | ((uint8_t)buffer[8]);
+      std::cout << "Point received - index: " << index << ", x: " << x << ", y: " << y << "\n";
       std::lock_guard<std::mutex> lock(points_mutex);
       point_vector_[index].setTargetPose(x, y);
     }
