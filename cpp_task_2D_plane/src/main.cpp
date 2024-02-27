@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
   unsigned int telemetry_port;
   unsigned int server_port;
 
-  std::cout << argc << " arguments\n";
   if (argc < 4) {
     std::cout << "usage: server -n number_points -t telemetry_port -s server_port\n";
     return(1);

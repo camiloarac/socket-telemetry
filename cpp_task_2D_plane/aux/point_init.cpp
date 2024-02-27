@@ -17,7 +17,7 @@ int main() {
   server_address.sin_port = htons(4444);
   server_address.sin_addr.s_addr = INADDR_ANY; // my local IP
 
-  int point[3] = {4, 157890, 183947};
+  int point[3] = {0, 15, 9};
 
   // Send single message
   if (sendto(udp_socket, &point, sizeof(point), 0,

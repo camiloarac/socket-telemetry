@@ -100,9 +100,9 @@ void PointManager::startServer() {
           ((uint8_t)buffer[5] << 8)  | ((uint8_t)buffer[4]);
       y = ((uint8_t)buffer[11] << 24) | ((uint8_t)buffer[10] << 16) | 
           ((uint8_t)buffer[9] << 8) | ((uint8_t)buffer[8]);
-      std::cout << "Point received - index: " << index << ", x: " << x << ", y: " << y << "\n";
       std::lock_guard<std::mutex> lock(points_mutex);
       point_vector_[index].setTargetPose(x, y);
+      std::cout << "Target pose updated for point with index " << index << ": x=" << x << ", y=" << y << "\n";
     }
     if (program_end_)
         break;
