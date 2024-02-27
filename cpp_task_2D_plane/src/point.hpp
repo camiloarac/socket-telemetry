@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <chrono>
 
 const int POINT_VELOCITY = 1;
 
@@ -10,21 +11,16 @@ class Point {
 public:
   Point() = delete;
 
-  Point(int x, int y)
-      : target_x_(x), target_y_(y), curr_x_(target_x_), curr_y_(target_y_) {}
+  Point(int x, int y);
 
-  std::pair<int, int> getCurrentPose() const {
-    // TODO: implmenet function to return curent pose
-  }
+  std::pair<int, int> getCurrentPose() const;
 
-  void setTargetPose(int target_x, int target_y) {
-    target_x_ = target_x;
-    target_y_ = target_y;
-  }
+  void setTargetPose(int target_x, int target_y);
 
 private:
   int target_x_, target_y_;
   int curr_x_, curr_y_;
+  std::chrono::time_point<std::chrono::high_resolution_clock> update_time_;
 
   int velocity_{POINT_VELOCITY};
 };

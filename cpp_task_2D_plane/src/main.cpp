@@ -1,11 +1,11 @@
 #include "point_manager.hpp"
 
-#include <bits/getopt_ext.h>
+// #include <bits/getopt_ext.h>
 #include <getopt.h>
 
 #include <iostream>
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
 
   int option;
   int option_index{0};
