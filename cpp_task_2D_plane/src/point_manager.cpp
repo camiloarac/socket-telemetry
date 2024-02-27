@@ -4,11 +4,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
+#include <mutex>
 
 
 #define BUFFER_SIZE 2048
 
 using namespace std::chrono_literals;
+
+std::mutex points_mutex;
 
 PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
       : telemetry_port_(telemetry_port), server_port_(server_port) {
@@ -18,12 +21,6 @@ PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
   for (auto i = 0; i < n; ++i) {
     point_vector_.emplace_back(std::rand() % 101 - 50,
                                 std::rand() % 101 - 50);
-  }
-  int offset_x{3};
-  int offset_y{1};
-  for (auto& elm : point_vector_) {
-    auto [x,y] = elm.getCurrentPose();
-    elm.setTargetPose(x + offset_x, y + offset_y);
   }
 }
 
@@ -39,15 +36,16 @@ void PointManager::publishTelemetry() {
   sockaddr_in server_address;
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(telemetry_port_);
-  server_address.sin_addr.s_addr = INADDR_ANY;
+  server_address.sin_addr.s_addr = INADDR_ANY; // my local IP
 
   // Infinite loop to send messages
   while (true) {
+    std::lock_guard<std::mutex> lock(points_mutex);
     for (auto& elm : point_vector_) {
       elm.updatePose();
       auto pose = elm.getCurrentPose();
-      if (sendto(udp_socket, &pose, sizeof pose, 0,
-          (struct sockaddr*)&server_address, sizeof server_address) == -1) {
+      if (sendto(udp_socket, &pose, sizeof(pose), 0,
+          (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
         perror("sendto() for the telemetry failed");
         exit(1);
       }
@@ -71,7 +69,7 @@ void PointManager::startServer() {
   sockaddr_in server_address;
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(server_port_);
-  server_address.sin_addr.s_addr = INADDR_ANY;
+  server_address.sin_addr.s_addr = INADDR_ANY; // my local IP
 
   // Bind the socket to the server address
   if (bind(udp_socket, (struct sockaddr *)&server_address,
@@ -83,12 +81,33 @@ void PointManager::startServer() {
   // Buffer to receive messages
   char buffer[BUFFER_SIZE];
 
+  sockaddr their_addr;
+  socklen_t addr_len;
+  int numbytes;
+  int index, x, y;
+
   // Infinite loop to listen for messages
   while (true) {
-    // TODO: implement publishing poses of all points
-    // implement mechanism to stop publishing and close socket
+    if ((numbytes = recvfrom(udp_socket, buffer, BUFFER_SIZE-1 , 0,
+        (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+      perror("recvfrom");
+      exit(1);
+    }
+    if (numbytes == 12) {
+      index = ((uint8_t)buffer[0] << 24) | ((uint8_t)buffer[1] << 16) | 
+              ((uint8_t)buffer[2] << 8)  | ((uint8_t)buffer[3]);
+      x = ((uint8_t)buffer[4] << 24) | ((uint8_t)buffer[5] << 16) | 
+          ((uint8_t)buffer[6] << 8)  | ((uint8_t)buffer[7]);
+      y = ((uint8_t)buffer[8] << 24) | ((uint8_t)buffer[9] << 16) | 
+          ((uint8_t)buffer[10] << 8) | ((uint8_t)buffer[11]);
+      std::lock_guard<std::mutex> lock(points_mutex);
+      point_vector_[index].setTargetPose(x, y);
+    }
+    if (program_end_)
+        break;
   }
   close(udp_socket);
+  std::cout << "The server socket for user interaction was closed...\n";
 }
 
 void PointManager::setProgramEnd() {
