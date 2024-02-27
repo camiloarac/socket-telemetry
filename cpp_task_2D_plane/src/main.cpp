@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 
   PointManager manager(number_points, telemetry_port, server_port);
 
+  manager.publishTelemetry();
   // TODO: start publishing points telemetry_port
   // TODO: start server
 }

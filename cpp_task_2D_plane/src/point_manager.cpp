@@ -4,8 +4,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
+#include <thread>
 
 #define BUFFER_SIZE 2048
+
+using namespace std::chrono_literals;
 
 PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
       : telemetry_port_(telemetry_port), server_port_(server_port) {
@@ -16,30 +19,45 @@ PointManager::PointManager(unsigned int n, int telemetry_port, int server_port)
     point_vector_.emplace_back(std::rand() % 101 - 50,
                                 std::rand() % 101 - 50);
   }
+  int offset_x{3};
+  int offset_y{1};
+  for (auto& elm : point_vector_) {
+    auto [x,y] = elm.getCurrentPose();
+    elm.setTargetPose(x + offset_x, y + offset_y);
+  }
 }
 
 void PointManager::publishTelemetry() {
-  // https://beej.us/guide/bgnet/html/#client-server-background
-  int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+  // int udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-  if (udp_socket == -1) {
-    perror("socket() for the telemetry failed");
-    exit(1);
+  // if (udp_socket == -1) {
+  //   perror("socket() for the telemetry failed");
+  //   exit(1);
+  // }
+
+  // // Set up the server address structure
+  // sockaddr_in server_address;
+  // server_address.sin_family = AF_INET;
+  // server_address.sin_port = htons(telemetry_port_);
+  // server_address.sin_addr.s_addr = INADDR_ANY;
+
+  // // Infinite loop to send messages
+  // while (true) {
+  //   // TODO: implement publishing poses of all points
+  //   // implement mechanism to stop publishing and close socket
+  // }
+
+  // close(udp_socket);
+  for (size_t i = 0; i < 35; i++) {
+    size_t c{1};
+    for (auto& elm : point_vector_) {
+      elm.updatePose();
+      auto [x, y] = elm.getCurrentPose();
+      std::cout << "Point " << c << "- x: " << x << ", y: " << y << "\n";
+      c++;
+    }
+    std::this_thread::sleep_for(200ms);
   }
-
-  // Set up the server address structure
-  sockaddr_in server_address;
-  server_address.sin_family = AF_INET;
-  server_address.sin_port = htons(telemetry_port_);
-  server_address.sin_addr.s_addr = INADDR_ANY;
-
-  // Infinite loop to send messages
-  while (true) {
-    // TODO: implement publishing poses of all points
-    // implement mechanism to stop publishing and close socket
-  }
-
-  close(udp_socket);
 }
 
 void PointManager::startServer() {
