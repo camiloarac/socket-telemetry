@@ -55,5 +55,6 @@ int main(int argc, char *argv[]) {
   } while (input != 'y');
   manager.setProgramEnd();
   t_telemetry.join();
+  std::cout << "server listening for a last message to close the application\n";
   t_server.join();
 }
